@@ -5,6 +5,9 @@
 
 using namespace Leap;
 
+const std::string fingerNames[] = {"Thumb", "Index", "Middle", "Ring", "Pinky"};
+const std::string boneNames[] = {"Metacarpal", "Proximal", "Middle", "Distal"};
+
 class Play {
 public:
 	Play() {};

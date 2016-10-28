@@ -31,9 +31,6 @@ class SampleListener : public Listener {
     virtual void onLogMessage(const Controller&, MessageSeverity severity, int64_t timestamp, const char* msg);
 };
 
-const std::string fingerNames[] = {"Thumb", "Index", "Middle", "Ring", "Pinky"};
-const std::string boneNames[] = {"Metacarpal", "Proximal", "Middle", "Distal"};
-
 void SampleListener::onInit(const Controller& controller) {
   std::cout << "Initialized" << std::endl;
 }
@@ -54,68 +51,6 @@ void SampleListener::onExit(const Controller& controller) {
 void SampleListener::onFrame(const Controller& controller) 
 {
   std::cout<<"Frame received"<<std::endl;
-  int frame_rate = 20;
-	// Get the most recent frame and report some basic information
-	const Frame frame = controller.frame();
-	if (frame.id() % frame_rate == 0)
-	{
-	  std::cout << "Frame id: " << frame.id()
-				<< ", timestamp: " << frame.timestamp()
-				<< ", hands: " << frame.hands().count()
-				<< ", extended fingers: " << frame.fingers().extended().count() << std::endl;
-
-	  HandList hands = frame.hands();
-	  for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
-
-		  // Get the first hand
-		  const Hand hand = *hl;
-		  std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
-		  std::cout << std::string(2, ' ') << handType << ", id: " << hand.id()
-			  << ", palm position: " << hand.palmPosition() << std::endl;
-		  // Get the hand's normal vector and direction
-		  const Vector normal = hand.palmNormal();
-		  const Vector direction = hand.direction();
-
-		  // Calculate the hand's pitch, roll, and yaw angles
-		  std::cout << std::string(2, ' ') << "pitch: " << direction.pitch() * RAD_TO_DEG << " degrees, "
-			  << "roll: " << normal.roll() * RAD_TO_DEG << " degrees, "
-			  << "yaw: " << direction.yaw() * RAD_TO_DEG << " degrees" << std::endl;
-
-		  // Get the Arm bone
-		  Arm arm = hand.arm();
-		  std::cout << std::string(2, ' ') << "Arm direction: " << arm.direction()
-			  << " wrist position: " << arm.wristPosition()
-			  << " elbow position: " << arm.elbowPosition() << std::endl;
-
-		  // Get fingers
-		  const FingerList fingers = hand.fingers();
-		  /*
-		  for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl)
-		  {
-		  const Finger finger = *fl;
-		  std::cout << std::string(4, ' ') <<  fingerNames[finger.type()]
-					  << " finger, id: " << finger.id()
-					  << ", length: " << finger.length()
-					  << "mm, width: " << finger.width() << std::endl;
-
-		  // Get finger bones
-		  for (int b = 0; b < 4; ++b)
-		  {
-			  Bone::Type boneType = static_cast<Bone::Type>(b);
-			  Bone bone = finger.bone(boneType);
-			  std::cout << std::string(6, ' ') <<  boneNames[boneType]
-					  << " bone, start: " << bone.prevJoint()
-					  << ", end: " << bone.nextJoint()
-					  << ", direction: " << bone.direction() << std::endl;
-		  }
-	  }*/
-	  }
-  }
-
-  if (!frame.hands().isEmpty()) {
-    //std::cout << std::endl;
-  }
-
 }
 
 void SampleListener::onFocusGained(const Controller& controller) {
@@ -184,6 +119,18 @@ void SampleListener::onLogMessage(const Controller&, MessageSeverity s, int64_t 
 }
 
 int main(int argc, char** argv) {
+  const char *FILE_NAME = NULL;
+  if (argc < 2) {
+    std::cout<<"Invalid number of args"<<std::endl;
+    return 0;
+  }
+  else {
+    if (strcmp(argv[1], "--bg") == 0)
+      FILE_NAME = argv[2];
+    else 
+      FILE_NAME = argv[1];
+  }
+
   // Create a sample listener and controller
   SampleListener listener;
   Controller controller;
@@ -200,11 +147,10 @@ int main(int argc, char** argv) {
 	  std::cout << "choice = " << choice << std::endl;
   }
   
+  Leap::Frame newFrame;
+
   switch (choice) {
   case 1:
-	  // Have the sample listener receive events from the controller
-	  controller.addListener(listener);
-
 	  if (argc > 1 && strcmp(argv[1], "--bg") == 0)
 		  controller.setPolicy(Leap::Controller::POLICY_BACKGROUND_FRAMES);
 
@@ -213,6 +159,9 @@ int main(int argc, char** argv) {
 	  // Keep this process running until Enter is pressed
 	  std::cout << "Press Enter to quit, or enter 'p' to pause or unpause the service..." << std::endl;
 	  std::cin.ignore(1);
+
+    newFrame = controller.frame();
+    p.displayFrame(newFrame);
     /* @aravind
 	  while (true) {
 		  char c = std::cin.get();
@@ -228,11 +177,11 @@ int main(int argc, char** argv) {
 	  break;
   case 2:
 	  std::cin.ignore(1);
-	  r.record("test_leap_record");
+	  r.record(FILE_NAME);
 	  break;
   case 3:
 	  std::cin.ignore(1);
-    p.play("test_leap_record");
+    p.play(FILE_NAME);
   default:
 	  break;
   }

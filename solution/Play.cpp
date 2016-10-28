@@ -4,9 +4,6 @@
 #include <iostream>
 // #include <Windows.h>
 
-const std::string fingerNames[] = {"Thumb", "Index", "Middle", "Ring", "Pinky"};
-const std::string boneNames[] = {"Metacarpal", "Proximal", "Middle", "Distal"};
-
 using namespace Leap;
 
 void Play::displayFrame(Frame frame) {
@@ -91,6 +88,7 @@ int Play::play(std::string filename)
 				std::cout << "Got frame id #" << frame.id() << std::endl;
 			}
 		}
+		displayFrame(frame);
 	}
 	return 0;
 }	
