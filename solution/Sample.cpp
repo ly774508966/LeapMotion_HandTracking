@@ -9,8 +9,8 @@
 #include <iostream>
 #include <cstring>
 #include "Leap.h"
-#include "play.hpp"
-#include "record.hpp"
+#include "Play.hpp"
+#include "Record.hpp"
 
 using namespace Leap;
 
@@ -53,6 +53,7 @@ void SampleListener::onExit(const Controller& controller) {
 
 void SampleListener::onFrame(const Controller& controller) 
 {
+  std::cout<<"Frame received"<<std::endl;
   int frame_rate = 20;
 	// Get the most recent frame and report some basic information
 	const Frame frame = controller.frame();
@@ -132,8 +133,10 @@ void SampleListener::onDeviceChange(const Controller& controller) {
   for (int i = 0; i < devices.count(); ++i) {
     std::cout << "id: " << devices[i].toString() << std::endl;
     std::cout << "  isStreaming: " << (devices[i].isStreaming() ? "true" : "false") << std::endl;
+    /* @aravind
     std::cout << "  isSmudged:" << (devices[i].isSmudged() ? "true" : "false") << std::endl;
     std::cout << "  isLightingBad:" << (devices[i].isLightingBad() ? "true" : "false") << std::endl;
+    */
   }
 }
 
@@ -151,6 +154,7 @@ void SampleListener::onServiceChange(const Controller& controller) {
 
 void SampleListener::onDeviceFailure(const Controller& controller) {
   std::cout << "Device Error" << std::endl;
+  /* @aravind
   const Leap::FailedDeviceList devices = controller.failedDevices();
 
   for (FailedDeviceList::const_iterator dl = devices.begin(); dl != devices.end(); ++dl) {
@@ -158,6 +162,7 @@ void SampleListener::onDeviceFailure(const Controller& controller) {
     std::cout << "  PNP ID:" << device.pnpId();
     std::cout << "    Failure type:" << device.failure();
   }
+  */
 }
 
 void SampleListener::onLogMessage(const Controller&, MessageSeverity s, int64_t t, const char* msg) {
@@ -187,14 +192,14 @@ int main(int argc, char** argv) {
   bool paused = false;
 
   int choice = 0;
-  std::cout << "1. Track \n2. Record \n3. Play \n:" << std::endl;
+  std::cout << "1. Track \n2. Record \n3. Play \n" << std::endl;
   std::cin >> choice;
   while (choice != 1 && choice != 2 && choice != 3) {
 	  std::cout << "1. Track \n2. Record \n3. Play \n:";
 	  std::cin >> choice;
 	  std::cout << "choice = " << choice << std::endl;
   }
-
+  
   switch (choice) {
   case 1:
 	  // Have the sample listener receive events from the controller
@@ -204,19 +209,22 @@ int main(int argc, char** argv) {
 		  controller.setPolicy(Leap::Controller::POLICY_BACKGROUND_FRAMES);
 
 	  controller.setPolicy(Leap::Controller::POLICY_ALLOW_PAUSE_RESUME);
+    
 	  // Keep this process running until Enter is pressed
 	  std::cout << "Press Enter to quit, or enter 'p' to pause or unpause the service..." << std::endl;
 	  std::cin.ignore(1);
+    /* @aravind
 	  while (true) {
 		  char c = std::cin.get();
 		  if (c == 'p') {
 			  paused = !paused;
-			  controller.setPaused(paused);
-			  std::cin.get(); //skip the newline
+        controller.setPaused(paused);
+        std::cin.get();
 		  }
 		  else
 			  break;
 	  }
+    */
 	  break;
   case 2:
 	  std::cin.ignore(1);
@@ -224,8 +232,7 @@ int main(int argc, char** argv) {
 	  break;
   case 3:
 	  std::cin.ignore(1);
-
-	  p.play("test_leap_record");
+    p.play("test_leap_record");
   default:
 	  break;
   }

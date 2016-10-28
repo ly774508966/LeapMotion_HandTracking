@@ -28,6 +28,8 @@ void LeapRecorder::Play()
 	playback_index = 0;
 	playback_start_system = GetSystemMicroseconds();
 	playback_start_leap = GetFrameAtIndex(playback_index).timestamp();
+
+	// std::cout<<"System playback start: "<<playback_start_system<<std::endl<<"Leap playback start: "<<playback_start_leap<<std::endl;
 }
 
 void LeapRecorder::Pause()
@@ -72,7 +74,7 @@ void LeapRecorder::Stop()
 
 bool LeapRecorder::Save(std::string filename)
 {
-	FILE* fp = fopen(filename.c_str(), "wb");
+	FILE* fp = fopen(filename.c_str(), "ab");
 	if (fp) {
 		frames_lock.lock();
 		for (auto it = frames.begin(); it != frames.end(); it++) {
@@ -90,6 +92,7 @@ bool LeapRecorder::Save(std::string filename)
 		std::cerr << "Error saving recorded data: Can not write to file: " << filename << std::endl;
 		return false;
 	}
+	
 }
 
 bool LeapRecorder::Load(std::string filename)
@@ -130,8 +133,13 @@ Leap::Frame LeapRecorder::GetCurrentFrame()
 		/* Loop until next frame is past the current time */
 		Leap::Frame last = GetFrameAtIndex(playback_index);
 		Leap::Frame next = last;
+
 		int64_t system_seconds = GetSystemMicroseconds() - playback_start_system;
 		int64_t leap_seconds = next.timestamp() - playback_start_leap;
+
+		// std::cout<<"System microseconds: "<<GetSystemMicroseconds()<<std::endl<<"Next timestamp: "<<next.timestamp()<<std::endl;
+
+		std::cout<<"System seconds "<<system_seconds<<std::endl<<"Leap seconds: "<<leap_seconds<<std::endl;
 
 		while (system_seconds > leap_seconds) {
 			if (playback_index + 1 >= frames.size()) { /* Check if we will go too far */
@@ -145,6 +153,8 @@ Leap::Frame LeapRecorder::GetCurrentFrame()
 			next = GetFrameAtIndex(playback_index);
 			leap_seconds = next.timestamp() - playback_start_leap;
 		}
+		std::cout<<"Returning frame with ID"<<last.id()<<" from GetCurrentFrame"<<std::endl;
+		std::cout<<"Playback index is "<<playback_index<<std::endl;
 		return last;
 	}
 	else {
@@ -166,6 +176,7 @@ Leap::Frame LeapRecorder::GetFrameAtIndex(unsigned int index)
 	if (!frame.isValid()) {
 		std::cout << "Error deserializing frame number " << index << std::endl;
 	}
+	// std::cout<<"Returning frame at index "<<index<<std::endl<<" from GetFrameAtIndex"<<std::endl;
 	return frame;
 }
 
@@ -197,3 +208,5 @@ void LeapRecorder::onFrame(const Leap::Controller &cont)
 		frames_lock.unlock();
 	}
 }
+
+
