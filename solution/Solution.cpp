@@ -7,6 +7,7 @@
 using namespace Leap;
 
 int main(int argc, char** argv) {
+  // Get file name from the command line
   const char *FILE_NAME = NULL;
   if (argc < 2) {
     std::cout<<"Invalid number of args"<<std::endl;
@@ -19,7 +20,7 @@ int main(int argc, char** argv) {
       FILE_NAME = argv[1];
   }
 
-  // Create a sample listener and controller
+  // Create a controller and instances of the Play and Record objects
   Controller controller;
   Play p;
   Record r;

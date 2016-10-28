@@ -12,6 +12,7 @@ class Play {
 public:
 	Play() {};
 	~Play() {};
+	void displayFrame(Frame frame, Leap::Vector prevVelocity, int64_t prevFrameTimeStamp);
 	void displayFrame(Frame frame);
 	int play(std::string filename);
 };

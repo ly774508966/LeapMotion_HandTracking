@@ -118,7 +118,6 @@ bool LeapRecorder::Load(std::string filename)
 
 Leap::Frame LeapRecorder::GetCurrentFrame()
 {
-	std::cout << "Playback index is "<<playback_index<<std::endl;
 	if (state == STATE_PAUSE) {
 		return GetFrameAtIndex(playback_index);
 	}

@@ -13,16 +13,26 @@ void Play::displayFrame(Frame frame) {
 			  << ", extended fingers: " << frame.fingers().extended().count() << std::endl
 			  << ", current frame rate: " << frame.currentFramesPerSecond() << " fps" << std::endl;
 	
-	/*
+}
+
+void Play::displayFrame(Frame frame, Leap::Vector prevVelocity, int64_t prevFrameTimeStamp) {
+	std::cout << "Frame id: " << frame.id()
+			  << ", timestamp: " << frame.timestamp()
+			  << ", hands: " << frame.hands().count()
+			  << ", extended fingers: " << frame.fingers().extended().count() << std::endl
+			  << ", current frame rate: " << frame.currentFramesPerSecond() << " fps" << std::endl;
+	
 	HandList hands = frame.hands();
 	for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
+		// Get the first hand
+		const Hand hand = *hl;
+		std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
+		std::cout << std::string(2, ' ') << handType << ", id: " << hand.id()
+				  << ", palm position: " << hand.palmPosition() <<  ", palm velocity: "<<hand.palmVelocity()
+				  << ", palm acceleration: "<<1000*(hand.palmVelocity()-prevVelocity)/(frame.timestamp() - prevFrameTimeStamp)<<std::endl; 
+				  // Acceleration unit is mm/ms^2.
 
-		  // Get the first hand
-		  const Hand hand = *hl;
-		  std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
-		  std::cout << std::string(2, ' ') << handType << ", id: " << hand.id()
-			  << ", palm position: " << hand.palmPosition() <<  ", palm velocity: "<<hand.palmVelocity()<<std::endl;
-		  
+		/*
 		  // Get the hand's normal vector and direction
 		  const Vector normal = hand.palmNormal();
 		  const Vector direction = hand.direction();
@@ -60,8 +70,8 @@ void Play::displayFrame(Frame frame) {
 					  << ", end: " << bone.nextJoint()
 					  << ", direction: " << bone.direction() << std::endl;
 		  	}
-		}
-	} */
+		} */
+	} 
 }
 
 int Play::play(std::string filename)
@@ -74,22 +84,36 @@ int Play::play(std::string filename)
 	}
 	recorder.Play();
 	bool firstFrame = true;
-	int64_t prevFrameID;
+	int64_t prevFrameID, prevFrameTimeStamp;
+	Leap::HandList tempHands;
+	Leap::Hand firstHand;
+
+	//@aravind: acceleration calculated for only one hand, need to extend it to other hands.
+	Leap::Vector prevVelocity;
 
 	while (recorder.get_state() != LeapRecorder::STATE_IDLE) {
 		Frame frame = recorder.GetCurrentFrame();
 		if (firstFrame) {
 			std::cout << "Got frame id #" << frame.id() << std::endl;
 			prevFrameID = frame.id();
+			prevFrameTimeStamp = frame.timestamp();
+			tempHands = frame.hands();
+			firstHand = tempHands[0];
+			prevVelocity = firstHand.palmVelocity();
+			displayFrame(frame, prevVelocity, prevFrameTimeStamp);
 			firstFrame = !firstFrame;
 		}
 		else {
 			if (frame.id() != prevFrameID) {
 				prevFrameID = frame.id();
 				std::cout << "Got frame id #" << frame.id() << std::endl;
+				displayFrame(frame, prevVelocity, prevFrameTimeStamp);
+				prevFrameTimeStamp = frame.timestamp();
+				tempHands = frame.hands();
+				firstHand = tempHands[0];
+				prevVelocity = firstHand.palmVelocity();
 			}
 		}
-		displayFrame(frame);
 	}
 	return 0;
 }	
