@@ -13,6 +13,7 @@ void Play::displayFrame(Frame frame) {
 			  << ", extended fingers: " << frame.fingers().extended().count() << std::endl
 			  << ", current frame rate: " << frame.currentFramesPerSecond() << " fps" << std::endl;
 	
+	/*
 	HandList hands = frame.hands();
 	for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
 
@@ -60,7 +61,7 @@ void Play::displayFrame(Frame frame) {
 					  << ", direction: " << bone.direction() << std::endl;
 		  	}
 		}
-	}
+	} */
 }
 
 int Play::play(std::string filename)
