@@ -128,12 +128,13 @@ Leap::Frame LeapRecorder::GetCurrentFrame()
 			return frame;
 		}
 		std::cout << "Reached end of playback." << std::endl;
+		lastPlayedIndex = playback_index-1;
 		Stop();
 		if (loop) Play(); // Restart if looping
 		return GetCurrentFrame(); // Returns first frame if looping or invalid if stopped
 	}
 	else {
-		return Leap::Frame();
+		return GetFrameAtIndex(lastPlayedIndex); // Return the last frame.
 	}
 }
 

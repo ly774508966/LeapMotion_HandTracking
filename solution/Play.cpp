@@ -29,15 +29,18 @@ void Play::displayFrame(Frame frame, Leap::Vector prevVelocity, int64_t prevFram
 		std::string handType = hand.isLeft() ? "Left hand" : "Right hand";
 		std::cout << std::string(2, ' ') << handType << ", id: " << hand.id()
 				  << ", palm position: " << hand.palmPosition() <<  ", palm velocity: "<<hand.palmVelocity()
-				  << ", palm acceleration: "<<1000*(hand.palmVelocity()-prevVelocity)/(frame.timestamp() - prevFrameTimeStamp)<<std::endl; 
+				  << ", palm acceleration: "<<1000*1000*(hand.palmVelocity()-prevVelocity)/(frame.timestamp() - prevFrameTimeStamp); 
 				  // Acceleration unit is mm/ms^2.
 
-		/*
+		
 		  // Get the hand's normal vector and direction
 		  const Vector normal = hand.palmNormal();
 		  const Vector direction = hand.direction();
 
+		  std::cout << ", Hand Direction: " << normal
+		 		    << ", Hand Normal: " << direction << std::endl;
 
+		/*
 		  // Calculate the hand's pitch, roll, and yaw angles
 		  std::cout << std::string(2, ' ') << "pitch: " << direction.pitch() * RAD_TO_DEG << " degrees, "
 			  << "roll: " << normal.roll() * RAD_TO_DEG << " degrees, "
@@ -94,7 +97,7 @@ int Play::play(std::string filename)
 	while (recorder.get_state() != LeapRecorder::STATE_IDLE) {
 		Frame frame = recorder.GetCurrentFrame();
 		if (firstFrame) {
-			std::cout << "Got frame id #" << frame.id() << std::endl;
+			//std::cout << "Got frame id #" << frame.id() << std::endl;
 			prevFrameID = frame.id();
 			prevFrameTimeStamp = frame.timestamp();
 			tempHands = frame.hands();
@@ -106,7 +109,7 @@ int Play::play(std::string filename)
 		else {
 			if (frame.id() != prevFrameID) {
 				prevFrameID = frame.id();
-				std::cout << "Got frame id #" << frame.id() << std::endl;
+				//std::cout << "Got frame id #" << frame.id() << std::endl;
 				displayFrame(frame, prevVelocity, prevFrameTimeStamp);
 				prevFrameTimeStamp = frame.timestamp();
 				tempHands = frame.hands();
@@ -114,6 +117,13 @@ int Play::play(std::string filename)
 				prevVelocity = firstHand.palmVelocity();
 			}
 		}
+		/* std::cout << "Palm Position: " << firstHand.palmPosition() << std::endl;
+				  << ", Palm Velocity: " << firstHand.palmVelocity()
+		 		  << ", Hand Direction: " << firstHand.direction()
+		 		  << ", Hand Normal: " << firstHand.palmNormal()
+		 		  // << ", Hand Acceleration: " << (firstHand.palmVelocity()-prevVelocity)/(frame.timestamp() - prevFrameTimeStamp)
+		 		  << std::endl; */
 	}
+	// std::cout << "Final position of the palm is " << firstHand.palmPosition() << std::endl;
 	return 0;
 }	
