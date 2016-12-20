@@ -45,6 +45,7 @@ private:
 	int64_t GetSystemMicroseconds();
 
 	unsigned int playback_index;
+	unsigned int lastPlayedIndex;
 	Leap::Frame GetFrameAtIndex(unsigned int index);
 
 	// Listener interface

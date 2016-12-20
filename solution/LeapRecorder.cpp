@@ -26,8 +26,6 @@ void LeapRecorder::Play()
 	}
 
 	playback_index = 0;
-	playback_start_system = GetSystemMicroseconds();
-	playback_start_leap = GetFrameAtIndex(playback_index).timestamp();
 }
 
 void LeapRecorder::Pause()
@@ -38,9 +36,6 @@ void LeapRecorder::Pause()
 	}
 	else if (state == STATE_PAUSE) {
 		state = STATE_PLAY;
-		/* Reset the playback timers to now/current frame */
-		playback_start_system = GetSystemMicroseconds();
-		playback_start_leap = GetFrameAtIndex(playback_index).timestamp();
 	}
 }
 
@@ -72,7 +67,7 @@ void LeapRecorder::Stop()
 
 bool LeapRecorder::Save(std::string filename)
 {
-	FILE* fp = fopen(filename.c_str(), "wb");
+	FILE* fp = fopen(filename.c_str(), "ab");
 	if (fp) {
 		frames_lock.lock();
 		for (auto it = frames.begin(); it != frames.end(); it++) {
@@ -90,6 +85,7 @@ bool LeapRecorder::Save(std::string filename)
 		std::cerr << "Error saving recorded data: Can not write to file: " << filename << std::endl;
 		return false;
 	}
+	
 }
 
 bool LeapRecorder::Load(std::string filename)
@@ -126,29 +122,19 @@ Leap::Frame LeapRecorder::GetCurrentFrame()
 		return GetFrameAtIndex(playback_index);
 	}
 	else if (state == STATE_PLAY) {
-		/* Load newest frame, based on timestamp */
-		/* Loop until next frame is past the current time */
-		Leap::Frame last = GetFrameAtIndex(playback_index);
-		Leap::Frame next = last;
-		int64_t system_seconds = GetSystemMicroseconds() - playback_start_system;
-		int64_t leap_seconds = next.timestamp() - playback_start_leap;
-
-		while (system_seconds > leap_seconds) {
-			if (playback_index + 1 >= frames.size()) { /* Check if we will go too far */
-				std::cout << "Reached end of playback." << std::endl;
-				Stop();
-				if (loop) Play(); // Restart if looping
-				return GetCurrentFrame(); // Returns first frame if looping or invalid if stopped
-			}
+		if (playback_index < frames.size()) {
+			Leap::Frame frame = GetFrameAtIndex(playback_index);
 			playback_index++;
-			last = next;
-			next = GetFrameAtIndex(playback_index);
-			leap_seconds = next.timestamp() - playback_start_leap;
+			return frame;
 		}
-		return last;
+		std::cout << "Reached end of playback." << std::endl;
+		lastPlayedIndex = playback_index-1;
+		Stop();
+		if (loop) Play(); // Restart if looping
+		return GetCurrentFrame(); // Returns first frame if looping or invalid if stopped
 	}
 	else {
-		return Leap::Frame();
+		return GetFrameAtIndex(lastPlayedIndex); // Return the last frame.
 	}
 }
 
@@ -167,12 +153,6 @@ Leap::Frame LeapRecorder::GetFrameAtIndex(unsigned int index)
 		std::cout << "Error deserializing frame number " << index << std::endl;
 	}
 	return frame;
-}
-
-int64_t LeapRecorder::GetSystemMicroseconds()
-{
-	auto now = std::chrono::high_resolution_clock::now().time_since_epoch();
-	return (int64_t)(std::chrono::duration_cast<std::chrono::microseconds>(now).count());
 }
 
 void LeapRecorder::onExit(const Leap::Controller &)
@@ -197,3 +177,5 @@ void LeapRecorder::onFrame(const Leap::Controller &cont)
 		frames_lock.unlock();
 	}
 }
+
+
